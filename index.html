@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petualangan Pulau Pecahan & Lembah Rasio - Kelas VI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            user-select: none;
+        }
+        h1, h2, h3, .font-game {
+            font-family: 'Fredoka', sans-serif;
+        }
+        /* Animasi Awan & Elemen Mengambang */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes bounce-slow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-float { animation: float 3.5s ease-in-out infinite; }
+        .animate-bounce-slow { animation: bounce-slow 2s ease-in-out infinite; }
+        .animate-shake { animation: shake 0.45s ease-in-out; }
+        .animate-pop { animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+        /* Gaya Tombol 3D Khas Game Anak */
+        .btn-3d {
+            transition: all 0.12s ease;
+            box-shadow: 0 5px 0 rgba(0, 0, 0, 0.25);
+        }
+        .btn-3d:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+        }
+        .btn-amber {
+            background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
+            box-shadow: 0 6px 0 #b45309;
+        }
+        .btn-amber:active { box-shadow: 0 2px 0 #b45309; }
+
+        .btn-emerald {
+            background: linear-gradient(180deg, #34d399 0%, #10b981 100%);
+            box-shadow: 0 6px 0 #047857;
+        }
+        .btn-emerald:active { box-shadow: 0 2px 0 #047857; }
+
+        .btn-blue {
+            background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 100%);
+            box-shadow: 0 6px 0 #1d4ed8;
+        }
+        .btn-blue:active { box-shadow: 0 2px 0 #1d4ed8; }
+
+        .option-card {
+            transition: all 0.15s ease;
+            box-shadow: 0 4px 0 #cbd5e1;
+        }
+        .option-card:hover:not(:disabled) {
+            transform: translateY(-2px);
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+            box-shadow: 0 6px 0 #93c5fd;
+        }
+        .option-card:active:not(:disabled) {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #cbd5e1;
+        }
+
+        /* Peta Petualangan SVG & Jalur */
+        .map-node {
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .map-node:hover:not(.locked) {
+            transform: scale(1.12);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(10px);
+            border: 4px solid #ffffff;
+        }
+        .fraction {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            font-size: 0.85em;
+            line-height: 1;
+            margin: 0 2px;
+        }
+        .fraction > span:first-child {
+            border-bottom: 2px solid currentColor;
+            padding: 0 3px 1px;
+        }
+        .fraction > span:last-child {
+            padding: 1px 3px 0;
+        }
+    </style>
+</head>
+<body class="p-3 sm:p-5 flex flex-col items-center justify-center">
+
+    <!-- Dekorasi Latar Belakang Awan & Bintang -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div class="absolute top-6 left-8 text-white/30 text-6xl animate-float">☁️</div>
+        <div class="absolute top-20 right-12 text-white/25 text-7xl animate-float" style="animation-delay: 1s;">☁️</div>
+        <div class="absolute bottom-10 left-16 text-yellow-200/30 text-5xl animate-bounce-slow">✨</div>
+        <div class="absolute bottom-16 right-10 text-white/20 text-6xl animate-float" style="animation-delay: 2s;">🏝️</div>
+    </div>
+
+    <!-- Container Utama -->
+    <div id="app" class="relative z-10 w-full max-w-4xl">
+        
+        <!-- ========================================================= -->
+        <!-- LAYAR 1: HALAMAN PEMBUKA (START SCREEN) -->
+        <!-- ========================================================= -->
+        <div id="screen-start" class="glass-panel rounded-3xl p-6 sm:p-10 shadow-2xl text-center animate-pop">
+            <div class="inline-block bg-amber-100 text-amber-800 font-bold px-4 py-1.5 rounded-full text-sm mb-3 border-2 border-amber-300">
+                🧭 MISI MATEMATIKA KELAS VI • KURIKULUM MERDEKA
+            </div>
+            
+            <div class="flex justify-center my-2">
+                <div class="w-28 h-28 sm:w-32 sm:h-32 bg-gradient-to-tr from-sky-400 to-indigo-500 rounded-full flex items-center justify-center text-6xl sm:text-7xl shadow-lg border-4 border-white animate-float">
+                    🦁
+                </div>
+            </div>
+
+            <h1 class="text-3xl sm:text-5xl font-bold text-indigo-900 tracking-tight mt-2 mb-2 drop-shadow-sm">
+                Petualangan Pulau Pecahan & Lembah Rasio
+            </h1>
+            <p class="text-slate-600 text-base sm:text-lg max-w-xl mx-auto mb-6 font-semibold">
+                Bantu <span class="text-indigo-600 font-bold">Leo si Penjelajah</span> melewati 5 Pos Tantangan di Pulau Nusantara untuk mengumpulkan 5 Kristal Angka!
+            </p>
+
+            <!-- Input Nama & Pilih Karakter -->
+            <div class="bg-indigo-50/90 rounded-2xl p-5 max-w-md mx-auto mb-6 border-2 border-indigo-200">
+                <label class="block text-left text-indigo-900 font-bold text-sm mb-1.5" for="player-name">
+                    ✏️ Siapa Nama Penjelajahmu?
+                </label>
+                <input type="text" id="player-name" maxlength="20" placeholder="Ketik namamu di sini..." 
+                    class="w-full px-4 py-3 rounded-xl border-2 border-indigo-300 focus:border-indigo-500 focus:outline-none text-indigo-950 font-bold text-lg bg-white mb-4">
+
+                <label class="block text-left text-indigo-900 font-bold text-sm mb-2">
+                    🎭 Pilih Avatar Penjelajah:
+                </label>
+                <div class="grid grid-cols-4 gap-2" id="avatar-selector">
+                    <button type="button" data-avatar="🦁" class="avatar-btn bg-amber-200 border-4 border-amber-500 rounded-2xl p-2.5 text-3xl shadow-sm transform scale-105 transition">🦁</button>
+                    <button type="button" data-avatar="🦊" class="avatar-btn bg-white border-2 border-slate-200 rounded-2xl p-2.5 text-3xl hover:bg-amber-50 transition">🦊</button>
+                    <button type="button" data-avatar="🐼" class="avatar-btn bg-white border-2 border-slate-200 rounded-2xl p-2.5 text-3xl hover:bg-amber-50 transition">🐼</button>
+                    <button type="button" data-avatar="🦉" class="avatar-btn bg-white border-2 border-slate-200 rounded-2xl p-2.5 text-3xl hover:bg-amber-50 transition">🦉</button>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
+                <button id="btn-start-game" class="btn-3d btn-amber text-white font-game font-bold text-xl sm:text-2xl px-8 py-4 rounded-2xl w-full sm:w-auto flex items-center justify-center gap-2">
+                    🚀 MULAI PETUALANGAN!
+                </button>
+                <button id="btn-toggle-sound-start" class="btn-3d bg-white text-indigo-700 border-2 border-indigo-200 font-bold px-5 py-4 rounded-2xl w-full sm:w-auto flex items-center justify-center gap-2">
+                    🔊 Suara: Aktif
+                </button>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- LAYAR 2: PETA PETUALANGAN (WORLD MAP) -->
+        <!-- ========================================================= -->
+        <div id="screen-map" class="hidden glass-panel rounded-3xl p-4 sm:p-6 shadow-2xl animate-pop">
+            <!-- Header Status Pemain -->
+            <div class="flex flex-wrap items-center justify-between gap-3 bg-indigo-900 text-white p-3.5 sm:p-4 rounded-2xl mb-5 shadow-md">
+                <div class="flex items-center gap-3">
+                    <div id="hud-avatar" class="w-12 h-12 bg-amber-400 rounded-2xl flex items-center justify-center text-3xl border-2 border-white shadow">🦁</div>
+                    <div>
+                        <div class="text-xs text-indigo-200 font-bold uppercase tracking-wider">Penjelajah Muda</div>
+                        <div id="hud-name" class="font-game text-lg sm:text-xl font-bold leading-tight">Siswa Hebat</div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 sm:gap-4">
+                    <!-- Nyawa / Energi -->
+                    <div class="bg-indigo-800/90 px-3 py-1.5 rounded-xl border border-indigo-600 flex items-center gap-1.5">
+                        <span class="text-xs text-indigo-200 font-bold hidden sm:inline">Energi:</span>
+                        <span id="hud-hearts" class="text-base sm:text-lg tracking-widest">❤️❤️❤️❤️❤️</span>
+                    </div>
+                    <!-- Skor Koin -->
+                    <div class="bg-amber-500 text-indigo-950 px-3.5 py-1.5 rounded-xl font-game font-bold text-base sm:text-lg flex items-center gap-1.5 shadow">
+                        <span>⭐</span>
+                        <span id="hud-score">0</span>
+                    </div>
+                    <!-- Tombol Suara -->
+                    <button id="btn-sound-map" class="bg-indigo-700 hover:bg-indigo-600 p-2 rounded-xl text-lg" title="Suara">🔊</button>
+                </div>
+            </div>
+
+            <div class="text-center mb-4">
+                <h2 class="text-2xl sm:text-3xl font-bold text-indigo-950">🗺️ Peta Pulau Nusantara</h2>
+                <p class="text-slate-600 text-sm sm:text-base font-semibold">Pilih pos misi yang terbuka untuk menaklukkan tantangan matematika!</p>
+            </div>
+
+            <!-- Visual Peta Interaktif -->
+            <div class="relative bg-gradient-to-b from-sky-200 via-emerald-100 to-amber-100 rounded-3xl p-4 sm:p-6 border-4 border-emerald-300 overflow-hidden shadow-inner">
+                <!-- Dekorasi Peta -->
+                <div class="absolute top-3 left-4 text-3xl opacity-70">🌲🌴</div>
+                <div class="absolute top-4 right-5 text-3xl opacity-70">⛰️🦅</div>
+                <div class="absolute bottom-3 left-6 text-3xl opacity-70">⛵🌊</div>
+                <div class="absolute bottom-3 right-6 text-3xl opacity-70">🏰✨</div>
+
+                <!-- Grid 5 Pos Petualangan -->
+                <div id="stages-container" class="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 my-2">
+                    <!-- Diisi secara dinamis oleh JavaScript -->
+                </div>
+            </div>
+
+            <!-- Bar Progres Kristal -->
+            <div class="mt-5 bg-slate-100 p-3.5 rounded-2xl border-2 border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">💎</span>
+                    <span class="font-bold text-slate-700 text-sm sm:text-base">Kristal Terkumpul: <span id="hud-crystals" class="text-indigo-700 font-extrabold">0 / 5</span></span>
+                </div>
+                <div class="w-full sm:w-64 bg-slate-300 h-4 rounded-full overflow-hidden p-0.5">
+                    <div id="progress-bar" class="bg-gradient-to-r from-emerald-400 to-teal-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- LAYAR 3: ARENA TANTANGAN SOAL (BATTLE / QUEST SCREEN) -->
+        <!-- ========================================================= -->
+        <div id="screen-quest" class="hidden glass-panel rounded-3xl p-4 sm:p-7 shadow-2xl animate-pop">
+            <!-- Bar Atas Quest -->
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-4 border-b-2 border-slate-200">
+                <button id="btn-back-map" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-3.5 py-2 rounded-xl text-sm flex items-center gap-1 transition">
+                    ⬅️ Peta
+                </button>
+                <div class="text-center">
+                    <span id="quest-stage-badge" class="bg-indigo-100 text-indigo-800 font-bold px-3 py-1 rounded-full text-xs sm:text-sm">
+                        Pos 1: Kebun Pecahan
+                    </span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span id="quest-hearts" class="text-sm sm:text-base">❤️❤️❤️❤️❤️</span>
+                    <span class="bg-amber-100 text-amber-800 font-game font-bold px-3 py-1 rounded-xl text-sm">⭐ <span id="quest-score">0</span></span>
+                </div>
+            </div>
+
+            <!-- Karakter Penjaga Pos & Dialog Cerita -->
+            <div class="flex items-start gap-3 sm:gap-4 bg-gradient-to-r from-indigo-50 to-sky-50 p-4 rounded-2xl border-2 border-indigo-200 mb-5">
+                <div id="npc-avatar" class="w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-2xl flex items-center justify-center text-4xl sm:text-5xl shadow-md border-2 border-indigo-300 shrink-0 animate-bounce-slow">
+                    👨‍🌾
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between mb-1">
+                        <span id="npc-name" class="font-game font-bold text-indigo-900 text-sm sm:text-base">Pak Kebun Agam</span>
+                        <span id="quest-counter" class="text-xs font-extrabold bg-indigo-600 text-white px-2.5 py-0.5 rounded-lg">Misi 1 / 3</span>
+                    </div>
+                    <p id="quest-story" class="text-slate-700 text-sm sm:text-base leading-relaxed font-semibold">
+                        Cerita misi akan muncul di sini...
+                    </p>
+                </div>
+            </div>
+
+            <!-- Kotak Stimulus (Jika Ada) -->
+            <div id="stimulus-box" class="hidden bg-amber-50 border-2 border-amber-300 rounded-2xl p-3.5 mb-4 text-sm text-amber-950 font-semibold">
+                <!-- Konten stimulus -->
+            </div>
+
+            <!-- Pertanyaan Utama -->
+            <div class="mb-5">
+                <div class="flex items-center gap-2 mb-2">
+                    <span id="question-type-tag" class="bg-purple-100 text-purple-800 text-xs font-extrabold px-2.5 py-1 rounded-md uppercase">Pilihan Ganda</span>
+                    <button id="btn-hint" class="ml-auto bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold px-3 py-1 rounded-full border border-amber-300 transition flex items-center gap-1">
+                        💡 Butuh Petunjuk?
+                    </button>
+                </div>
+                <h3 id="question-text" class="text-lg sm:text-xl font-extrabold text-slate-800 leading-snug">
+                    Pertanyaan soal...
+                </h3>
+                <!-- Kotak Petunjuk -->
+                <div id="hint-box" class="hidden mt-3 bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded-r-xl text-sm text-yellow-900 font-semibold">
+                    <!-- Isi petunjuk -->
+                </div>
+            </div>
+
+            <!-- Area Jawaban Dinamis (PG / PGK / Isian) -->
+            <div id="answer-area" class="mb-4">
+                <!-- Tombol opsi atau input jawaban -->
+            </div>
+
+            <!-- Tombol Submit Khusus PGK / Isian -->
+            <div id="submit-action-area" class="hidden mt-4">
+                <button id="btn-submit-answer" class="btn-3d btn-emerald text-white font-game font-bold text-lg w-full py-3.5 rounded-2xl">
+                    ✅ KIRIM JAWABAN
+                </button>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- LAYAR 4: SELESAI SEMUA POS / VICTORY SCREEN -->
+        <!-- ========================================================= -->
+        <div id="screen-victory" class="hidden glass-panel rounded-3xl p-6 sm:p-10 shadow-2xl text-center animate-pop">
+            <div class="text-6xl sm:text-7xl mb-3 animate-bounce">🏆</div>
+            <div class="inline-block bg-emerald-100 text-emerald-800 font-extrabold px-4 py-1 rounded-full text-sm mb-2 border border-emerald-300">
+                PETUALANGAN SELESAI!
+            </div>
+            <h2 id="victory-title" class="text-3xl sm:text-4xl font-bold text-indigo-950 mb-2">
+                Selamat, Sang Juara Matematika!
+            </h2>
+            <p id="victory-subtitle" class="text-slate-600 font-semibold max-w-lg mx-auto mb-6">
+                Kamu telah menaklukkan seluruh tantangan Pecahan, Desimal, dan Rasio di Pulau Nusantara!
+            </p>
+
+            <!-- Kartu Statistik Akhir -->
+            <div class="grid grid-cols-3 gap-3 max-w-lg mx-auto mb-6">
+                <div class="bg-amber-50 border-2 border-amber-300 p-3.5 rounded-2xl">
+                    <div class="text-2xl mb-1">⭐</div>
+                    <div class="text-xs font-bold text-amber-800">Total Skor</div>
+                    <div id="final-score" class="font-game text-2xl font-bold text-amber-600">0</div>
+                </div>
+                <div class="bg-sky-50 border-2 border-sky-300 p-3.5 rounded-2xl">
+                    <div class="text-2xl mb-1">💎</div>
+                    <div class="text-xs font-bold text-sky-800">Kristal</div>
+                    <div id="final-crystals" class="font-game text-2xl font-bold text-sky-600">5/5</div>
+                </div>
+                <div class="bg-emerald-50 border-2 border-emerald-300 p-3.5 rounded-2xl">
+                    <div class="text-2xl mb-1">🎯</div>
+                    <div class="text-xs font-bold text-emerald-800">Predikat</div>
+                    <div id="final-rank" class="font-game text-lg sm:text-xl font-bold text-emerald-600 mt-1">Master!</div>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <button id="btn-play-again" class="btn-3d btn-amber text-white font-game font-bold text-lg px-7 py-3.5 rounded-2xl">
+                    🔄 Main Lagi dari Awal
+                </button>
+                <button id="btn-back-to-map-end" class="btn-3d btn-blue text-white font-game font-bold text-lg px-7 py-3.5 rounded-2xl">
+                    🗺️ Lihat Peta Pulau
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODAL FEEDBACK JAWABAN (BENAR / SALAH / PENJELASAN) -->
+    <!-- ========================================================= -->
+    <div id="feedback-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div id="feedback-card" class="bg-white rounded-3xl max-w-md w-full p-6 text-center shadow-2xl border-4 border-emerald-400 animate-pop">
+            <div id="fb-icon" class="text-6xl mb-2">🎉</div>
+            <h3 id="fb-title" class="font-game text-2xl sm:text-3xl font-bold text-emerald-700 mb-2">Hebat Sekali!</h3>
+            <p id="fb-message" class="text-slate-700 font-semibold text-sm sm:text-base mb-4">
+                Jawabanmu tepat!
+            </p>
+            <div class="bg-slate-100 rounded-2xl p-3.5 text-left text-xs sm:text-sm text-slate-700 mb-5 border border-slate-200">
+                <span class="font-extrabold text-indigo-800 block mb-1">📘 Pembahasan Singkat:</span>
+                <span id="fb-explanation">Penjelasan cara menghitung...</span>
+            </div>
+            <button id="btn-next-quest" class="btn-3d btn-emerald text-white font-game font-bold text-lg w-full py-3.5 rounded-2xl">
+                Lanjutkan Petualangan ➡️
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODAL NOTIFIKASI RINGAN (PENGGANTI ALERT) -->
+    <!-- ========================================================= -->
+    <div id="toast-box" class="hidden fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-indigo-950 text-white px-5 py-3 rounded-2xl shadow-xl font-bold text-sm flex items-center gap-2 border-2 border-amber-400">
+        <span id="toast-icon">⚠️</span>
+        <span id="toast-text">Pesan notifikasi</span>
+    </div>
+
+    <script>
+        // =========================================================================
+        // 1. SISTEM EFEK SUARA SINTETIS (TONE.JS - TANPA URL EKSTERNAL)
+        // =========================================================================
+        let soundEnabled = true;
+        let synth = null;
+
+        function initAudio() {
+            if (!synth && typeof Tone !== 'undefined') {
+                synth = new Tone.PolySynth(Tone.Synth).toDestination();
+                synth.volume.value = -8;
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                if (Tone.context.state !== 'running') {
+                    Tone.start();
+                }
+                const now = Tone.now();
+                if (type === 'click') {
+                    synth.triggerAttackRelease("C5", "32n", now);
+                } else if (type === 'correct') {
+                    synth.triggerAttackRelease("C5", "16n", now);
+                    synth.triggerAttackRelease("E5", "16n", now + 0.08);
+                    synth.triggerAttackRelease("G5", "16n", now + 0.16);
+                    synth.triggerAttackRelease("C6", "8n", now + 0.24);
+                } else if (type === 'wrong') {
+                    synth.triggerAttackRelease("E3", "8n", now);
+                    synth.triggerAttackRelease("Eb3", "4n", now + 0.15);
+                } else if (type === 'stageClear') {
+                    synth.triggerAttackRelease(["C5", "E5", "G5"], "8n", now);
+                    synth.triggerAttackRelease(["F5", "A5", "C6"], "4n", now + 0.2);
+                }
+            } catch (e) {
+                // Abaikan jika browser memblokir audio sebelum interaksi
+            }
+        }
+
+        // =========================================================================
+        // 2. DATA MISI PETUALANGAN (DIADAPTASI DARI LEMBAR SOAL SAS KELAS VI)
+        // =========================================================================
+        const stagesData = [
+            {
+                id: 0,
+                title: "Pos 1: Kebun Sayur Agam",
+                subtitle: "Perkalian Pecahan",
+                icon: "🌱",
+                color: "from-emerald-400 to-green-600",
+                border: "border-emerald-500",
+                npcName: "Agam & Ayah",
+                npcAvatar: "👨‍🌾",
+                questions: [
+                    {
+                        type: "pg",
+                        typeLabel: "Pilihan Ganda • Soal No. 1",
+                        story: "Agam sedang menyiram kebun sayur menggunakan ember kecil. Satu ember air bisa menyiram 3/5 m² lahan.",
+                        question: "Jika Agam menyiram kebun menggunakan 6 ember kecil air, berapa luas kebun yang berhasil disiram Agam?",
+                        options: ["2 3/5 m²", "3 1/5 m²", "3 3/5 m²", "4 1/5 m²"],
+                        correctIndex: 2,
+                        hint: "Kalikan banyak ember (6) dengan luas lahan per ember (3/5), lalu ubah pecahan biasa ke pecahan campuran!",
+                        explanation: "6 × 3/5 = 18/5. Jika diubah menjadi pecahan campuran: 18 ÷ 5 = 3 sisa 3, jadi hasilnya 3 3/5 m²."
+                    },
+                    {
+                        type: "pg",
+                        typeLabel: "Pilihan Ganda • Soal No. 2",
+                        story: "Di SD Nusantara terdapat 180 siswa kelas VI. Sebanyak 2/9 bagian dari mereka ikut ekstrakurikuler Pramuka Garuda.",
+                        question: "Berapa banyak siswa kelas VI yang mengikuti ekstrakurikuler Pramuka Garuda?",
+                        options: ["20 anak", "36 anak", "40 anak", "45 anak"],
+                        correctIndex: 2,
+                        hint: "Hitung 2/9 × 180. Kamu bisa membagi 180 dengan 9 terlebih dahulu, lalu hasilnya dikalikan 2.",
+                        explanation: "2/9 × 180 = 2 × (180 ÷ 9) = 2 × 20 = 40 anak."
+                    },
+                    {
+                        type: "pg",
+                        typeLabel: "Pilihan Ganda • Soal No. 3",
+                        story: "Ibu Dini mendapat pesanan 120 kotak kue tradisional. Pagi hari selesai 3/4 bagian. Siangnya, 2/5 bagian dari kue yang selesai sudah dijemput pemesan.",
+                        question: "Berapa sisa kotak kue yang sudah selesai dibuat dan masih berada di rumah Ibu Dini?",
+                        options: ["36 kotak", "54 kotak", "72 kotak", "90 kotak"],
+                        correctIndex: 1,
+                        hint: "Langkah 1: Hitung 3/4 × 120. Langkah 2: Hitung 2/5 dari hasil Langkah 1, lalu kurangkan!",
+                        explanation: "Kue selesai = 3/4 × 120 = 90 kotak. Dijemput = 2/5 × 90 = 36 kotak. Sisa di rumah = 90 − 36 = 54 kotak."
+                    }
+                ]
+            },
+            {
+                id: 1,
+                title: "Pos 2: Kedai Sirup & Gula",
+                subtitle: "Pembagian Pecahan",
+                icon: "🍹",
+                color: "from-amber-400 to-orange-500",
+                border: "border-orange-500",
+                npcName: "Kak Rania",
+                npcAvatar: "👩‍🍳",
+                questions: [
+                    {
+                        type: "pg",
+                        typeLabel: "Pilihan Ganda • Soal No. 4",
+                        story: "Kak Rania memiliki botol berisi 3/4 liter sirup markisa yang akan dituang merata ke dalam 6 gelas sama besar.",
+                        question: "Berapa banyak sirup markisa di dalam setiap gelas?",
+                        options: ["1/8 liter", "1/6 liter", "1/4 liter", "1/2 liter"],
+                        correctIndex: 0,
+                        hint: "Membagi pecahan dengan 6 sama dengan mengalikan 3/4 dengan 1/6. Jangan lupa disederhanakan!",
+                        explanation: "3/4 ÷ 6 = 3/4 × 1/6 = 3/24. Sederhanakan dengan membagi 3, hasilnya 1/8 liter."
+                    },
+                    {
+                        type: "pg",
+                        typeLabel: "Pilihan Ganda • Soal No. 5",
+                        story: "Sebuah toko kelontong memiliki persediaan 12 kg gula pasir yang akan dikemas ke dalam kantong plastik ukuran 3/4 kg.",
+                        question: "Berapa banyak kantong plastik kecil yang dibutuhkan?",
+                        options: ["9 kantong", "15 kantong", "16 kantong", "18 kantong"],
+                        correctIndex: 2,
+                        hint: "Hitung 12 ÷ 3/4 dengan cara mengubah pembagian menjadi perkalian kebalikannya: 12 × 4/3.",
+                        explanation: "12 ÷ 3/4 = 12 × 4/3 = 48 ÷ 3 = 16 kantong plastik."
+                    },
+                    {
+                        type: "input",
+                        typeLabel: "Isian Singkat • Soal No. 22",
+                        story: "Pak Rudi menyediakan 6 liter jus jambu untuk kerja bakti dan menuangkannya ke dalam botol kecil berkapasitas 3/5 liter.",
+                        question: "Berapa banyak botol kecil yang terisi penuh oleh jus jambu? (Ketik angkanya saja)",
+                        correctAnswers: ["10", "10 botol"],
+                        placeholder: "Contoh: 8",
+                        hint: "Hitung 6 ÷ 3/5 = 6 × 5/3.",
+                        explanation: "6 ÷ 3/5 = 6 × 5/3 = 30 ÷ 3 = 10 botol."
+                    }
+                ]
+            },
+            {
+                id: 2,
+                title: "Pos 3: Lintasan Lompat Desimal",
+                subtitle: "Bilangan Desimal",
+                icon: "🏃",
+                color: "from-sky-400 to-blue-600",
+                border: "border-blue-500",
+                npcName: "Pelatih Made",
+                npcAvatar: "🏅",
+                questions: [
+                    {
+                        type: "pg",
+                        typeLabel: "Pilihan Ganda • Soal No. 6",
+                        story: "Pak Made mengecat dinding kelas VI seluas 4 3/5 m² untuk lomba kebersihan sekolah.",
+                        question: "Jika dinyatakan dalam bentuk bilangan desimal, luas dinding yang dicat Pak Made adalah ....",
+                        options: ["4,2 m²", "4,3 m²", "4,5 m²", "4,6 m²"],
+                        correctIndex: 3,
+                        hint: "Ubah pecahan 3/5 menjadi persepuluhan dengan mengalikan pembilang dan penyebut dengan 2 (3/5 = 6/10).",
+                        explanation: "4 3/5 = 4 + 6/10 = 4 + 0,6 = 4,6 m²."
+                    },
+                    {
+                        type: "pg",
+                        typeLabel: "Pilihan Ganda • Soal No. 8",
+                        story: "Rido berpendapat bahwa 2,38 lebih besar daripada 2,7 karena angka 38 lebih besar dari 7.",
+                        question: "Manakah analisis matematis yang paling tepat untuk menanggapi pendapat Rido?",
+                        options: [
+                            "Benar, karena angka di belakang koma dibandingkan seperti bilangan bulat.",
+                            "Keliru, karena pada nilai tempat persepuluhan, angka 3 pada 2,38 lebih kecil dari angka 7 pada 2,7.",
+                            "Keliru, karena 2,38 punya tiga angka sedangkan 2,7 punya dua angka.",
+                            "Benar, karena 2,38 punya nilai perseratusan."
+                        ],
+                        correctIndex: 1,
+                        hint: "Bandingkan nilai tempat mulai dari kiri ke kanan: satuan (2 = 2), lalu persepuluhan (3 dibandingkan dengan 7).",
+                        explanation: "Pada 2,38 angka persepuluhannya adalah 3, sedangkan pada 2,7 angka persepuluhannya adalah 7. Karena 3 < 7, maka 2,38 < 2,7."
+                    },
+                    {
+                        type: "pgk",
+                        typeLabel: "Pilihan Ganda Kompleks • Soal No. 17",
+                        story: "Perhatikan kandungan gizi Biskuit Gandum Sehat per takaran saji berikut!",
+                        stimulus: "📊 Karbohidrat Total: 26,4 g  |  Lemak Total: 6,8 g  |  Protein: 3,2 g  |  Serat Pangan: 2,9 g",
+                        question: "Pilih SEMUA pernyataan yang benar berdasarkan tabel gizi di atas! (Jawaban benar lebih dari satu)",
+                        options: [
+                            "Kandungan lemak total lebih besar daripada dua kali lipat kandungan protein.",
+                            "Urutan zat gizi dari terkecil ke terbesar: serat pangan, protein, lemak total, karbohidrat total.",
+                            "Angka 9 pada kandungan serat pangan (2,9 g) menempati nilai tempat perseratusan.",
+                            "Selisih kandungan protein dan serat pangan adalah 0,3 gram."
+                        ],
+                        correctIndices: [0, 1, 3],
+                        hint: "Cek satu per satu: 2 × 3,2 = 6,4 (bandingkan dengan 6,8). Cek juga 3,2 − 2,9!",
+                        explanation: "Pernyataan 1 benar (6,8 > 6,4). Pernyataan 2 benar (2,9 < 3,2 < 6,8 < 26,4). Pernyataan 3 salah (angka 9 adalah persepuluhan). Pernyataan 4 benar (3,2 − 2,9 = 0,3 g)."
+                    }
+                ]
+            },
+            {
+                id: 3,
+                title: "Pos 4: Pasar Herbal & Wahana",
+                subtitle: "Konsep & Rasio Satuan",
+                icon: "🎡",
+                color: "from-fuchsia-500 to-purple-600",
+                border: "border-purple-500",
+                npcName: "Tigor si Pedagang",
+                npcAvatar: "🧑‍💼",
+                questions: [
+                    {
+                        type: "pg",
+                        typeLabel: "Pilihan Ganda • Soal No. 9",
+                        story: "Siswa kelas VI menanam 16 bibit pohon pucuk merah dan 24 bibit pohon cemara di taman sekolah.",
+                        question: "Rasio paling sederhana dari banyak pohon pucuk merah terhadap pohon cemara adalah ....",
+                        options: ["2 : 3", "3 : 2", "3 : 4", "4 : 3"],
+                        correctIndex: 0,
+                        hint: "Bagi kedua bilangan (16 dan 24) dengan FPB-nya, yaitu 8.",
+                        explanation: "16 : 24 masing-masing dibagi 8 menjadi 2 : 3."
+                    },
+                    {
+                        type: "pg",
+                        typeLabel: "Pilihan Ganda • Soal No. 11",
+                        story: "Tigor ingin membeli bibit jahe merah. Paket A berisi 4 bibit seharga Rp46.000,00. Paket B berisi 6 bibit seharga Rp66.000,00.",
+                        question: "Berdasarkan konsep rasio satuan, keputusan mana yang paling menguntungkan?",
+                        options: [
+                            "Memilih Paket A karena total harganya lebih murah Rp20.000,00.",
+                            "Memilih Paket A karena harga satuannya Rp11.000,00/bibit.",
+                            "Memilih Paket B karena harga satuannya Rp11.000,00, lebih hemat Rp500,00/bibit dari Paket A.",
+                            "Keduanya sama saja karena selisihnya hanya 2 bibit."
+                        ],
+                        correctIndex: 2,
+                        hint: "Hitung harga 1 bibit pada masing-masing paket: Rp46.000 ÷ 4 dan Rp66.000 ÷ 6.",
+                        explanation: "Harga satuan Paket A = Rp46.000 ÷ 4 = Rp11.500/bibit. Harga satuan Paket B = Rp66.000 ÷ 6 = Rp11.000/bibit. Jadi Paket B lebih hemat Rp500/bibit."
+                    },
+                    {
+                        type: "pgk",
+                        typeLabel: "Pilihan Ganda Kompleks • Soal No. 18",
+                        story: "Kelompok Anike membuat minuman Wedang Jahe sesuai resep standar di bawah ini.",
+                        stimulus: "🫖 Resep 4 Liter Wedang Jahe: 12 ruas jahe merah  •  8 batang serai  •  4 buah lemon  •  250 gram gula aren",
+                        question: "Pilih SEMUA pernyataan yang sesuai dengan kesamaan rasio resep tersebut!",
+                        options: [
+                            "Untuk membuat 10 liter Wedang Jahe, dibutuhkan 30 ruas jahe merah besar.",
+                            "Jika tersedia 6 batang serai, banyak lemon yang dibutuhkan agar pas adalah 3 buah.",
+                            "Untuk membuat 2 liter Wedang Jahe, gula aren yang dibutuhkan adalah 150 gram.",
+                            "Rasio paling sederhana antara jahe merah, serai, dan lemon adalah 3 : 2 : 1."
+                        ],
+                        correctIndices: [0, 1, 3],
+                        hint: "Cari takaran per 1 liter dulu: 3 jahe, 2 serai, 1 lemon, dan 62,5 g gula aren.",
+                        explanation: "Untuk 10 liter (×2,5): jahe = 12 × 2,5 = 30 ruas (Benar). Rasio serai : lemon = 2 : 1, jika serai 6 maka lemon 3 (Benar). Untuk 2 liter gula aren = 250 ÷ 2 = 125 g (Salah). Rasio 12 : 8 : 4 dibagi 4 = 3 : 2 : 1 (Benar)."
+                    }
+                ]
+            },
+            {
+                id: 4,
+                title: "Pos 5: Istana Kristal Waktu",
+                subtitle: "Penerapan Rasio & Durasi",
+                icon: "🏰",
+                color: "from-rose-500 to-red-600",
+                border: "border-rose-500",
+                npcName: "Penjaga Kristal",
+                npcAvatar: "🧙‍♂️",
+                questions: [
+                    {
+                        type: "pg",
+                        typeLabel: "Pilihan Ganda • Soal No. 13",
+                        story: "Total pengunjung pameran buku pada hari Minggu adalah 390 orang dengan rasio anak-anak terhadap orang dewasa 8 : 5.",
+                        question: "Berapa banyak pengunjung anak-anak yang datang pada hari itu?",
+                        options: ["150 orang", "210 orang", "240 orang", "260 orang"],
+                        correctIndex: 2,
+                        hint: "Jumlahkan angka rasio (8 + 5 = 13). Lalu hitung (8 / 13) × 390.",
+                        explanation: "Total bagian rasio = 8 + 5 = 13. Pengunjung anak-anak = (8/13) × 390 = 8 × 30 = 240 orang."
+                    },
+                    {
+                        type: "pg",
+                        typeLabel: "Pilihan Ganda • Soal No. 14",
+                        story: "Untuk menanam 5 polybag tanaman obat, Ayah butuh waktu 15 menit, sedangkan Tigor butuh waktu 3/4 jam.",
+                        question: "Rasio waktu yang diperlukan Ayah terhadap waktu Tigor adalah ....",
+                        options: ["1 : 3", "3 : 1", "1 : 4", "5 : 1"],
+                        correctIndex: 0,
+                        hint: "Ubah waktu Tigor ke satuan menit terlebih dahulu: 3/4 × 60 menit = 45 menit.",
+                        explanation: "Waktu Ayah = 15 menit. Waktu Tigor = 3/4 × 60 = 45 menit. Rasio = 15 : 45 = 1 : 3."
+                    },
+                    {
+                        type: "input",
+                        typeLabel: "Isian Singkat • Soal No. 30a",
+                        story: "Di kebun TOGA sekolah, tanaman kumis kucing dipanen setiap 12 minggu, sedangkan kencur dipanen setiap 6 bulan (1 bulan = 4 minggu).",
+                        question: "Jika masa panen kumis kucing diubah ke satuan bulan, berapa bulan masa panen kumis kucing? (Ketik angkanya saja)",
+                        correctAnswers: ["3", "3 bulan"],
+                        placeholder: "Contoh: 4",
+                        hint: "1 bulan = 4 minggu. Bagi 12 minggu dengan 4 minggu.",
+                        explanation: "12 minggu ÷ 4 minggu/bulan = 3 bulan. (Rasio kumis kucing : kencur = 3 : 6 = 1 : 2)."
+                    }
+                ]
+            }
+        ];
+
+        // =========================================================================
+        // 3. STATE PERMAINAN
+        // =========================================================================
+        let gameState = {
+            playerName: "Penjelajah Hebat",
+            avatar: "🦁",
+            hearts: 5,
+            maxHearts: 5,
+            score: 0,
+            unlockedStage: 0,
+            completedStages: [false, false, false, false, false],
+            currentStageIdx: 0,
+            currentQuestionIdx: 0,
+            selectedPGK: new Set()
+        };
+
+        // =========================================================================
+        // 4. REFERENSI DOM & NAVIGASI LAYAR
+        // =========================================================================
+        const screens = {
+            start: document.getElementById('screen-start'),
+            map: document.getElementById('screen-map'),
+            quest: document.getElementById('screen-quest'),
+            victory: document.getElementById('screen-victory')
+        };
+
+        function showScreen(screenName) {
+            Object.values(screens).forEach(s => s.classList.add('hidden'));
+            screens[screenName].classList.remove('hidden');
+        }
+
+        function showToast(msg, icon = "⚠️") {
+            const toast = document.getElementById('toast-box');
+            document.getElementById('toast-icon').textContent = icon;
+            document.getElementById('toast-text').textContent = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 2500);
+        }
+
+        function renderHearts(hearts) {
+            let str = "";
+            for (let i = 0; i < gameState.maxHearts; i++) {
+                str += i < hearts ? "❤️" : "🖤";
+            }
+            return str;
+        }
+
+        function updateHUD() {
+            document.getElementById('hud-avatar').textContent = gameState.avatar;
+            document.getElementById('hud-name').textContent = gameState.playerName;
+            document.getElementById('hud-hearts').textContent = renderHearts(gameState.hearts);
+            document.getElementById('hud-score').textContent = gameState.score;
+
+            document.getElementById('quest-hearts').textContent = renderHearts(gameState.hearts);
+            document.getElementById('quest-score').textContent = gameState.score;
+
+            const crystalCount = gameState.completedStages.filter(Boolean).length;
+            document.getElementById('hud-crystals').textContent = `${crystalCount} / 5`;
+            document.getElementById('progress-bar').style.width = `${(crystalCount / 5) * 100}%`;
+        }
+
+        // =========================================================================
+        // 5. LOGIKA LAYAR START & PILIH AVATAR
+        // =========================================================================
+        document.querySelectorAll('.avatar-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                playSound('click');
+                document.querySelectorAll('.avatar-btn').forEach(b => {
+                    b.classList.remove('bg-amber-200', 'border-4', 'border-amber-500', 'scale-105');
+                    b.classList.add('bg-white', 'border-2', 'border-slate-200');
+                });
+                btn.classList.remove('bg-white', 'border-2', 'border-slate-200');
+                btn.classList.add('bg-amber-200', 'border-4', 'border-amber-500', 'scale-105');
+                gameState.avatar = btn.dataset.avatar;
+            });
+        });
+
+        function toggleSoundUI() {
+            soundEnabled = !soundEnabled;
+            const txt = soundEnabled ? "🔊 Suara: Aktif" : "🔇 Suara: Mati";
+            const icon = soundEnabled ? "🔊" : "🔇";
+            document.getElementById('btn-toggle-sound-start').textContent = txt;
+            document.getElementById('btn-sound-map').textContent = icon;
+            if (soundEnabled) playSound('click');
+        }
+
+        document.getElementById('btn-toggle-sound-start').addEventListener('click', toggleSoundUI);
+        document.getElementById('btn-sound-map').addEventListener('click', toggleSoundUI);
+
+        document.getElementById('btn-start-game').addEventListener('click', () => {
+            const inputName = document.getElementById('player-name').value.trim();
+            gameState.playerName = inputName || "Penjelajah Hebat";
+            playSound('correct');
+            renderMap();
+            showScreen('map');
+        });
+
+        // =========================================================================
+        // 6. RENDER PETA PETUALANGAN (WORLD MAP)
+        // =========================================================================
+        function renderMap() {
+            updateHUD();
+            const container = document.getElementById('stages-container');
+            container.innerHTML = "";
+
+            stagesData.forEach((stage, idx) => {
+                const isCompleted = gameState.completedStages[idx];
+                const isUnlocked = idx <= gameState.unlockedStage;
+
+                const card = document.createElement('button');
+                card.type = "button";
+                card.disabled = !isUnlocked;
+
+                let statusBadge = "";
+                let cardClasses = "map-node flex flex-col items-center justify-between p-4 rounded-2xl border-4 text-center shadow-lg transition ";
+
+                if (isCompleted) {
+                    cardClasses += "bg-white border-emerald-500 cursor-pointer";
+                    statusBadge = `<span class="bg-emerald-100 text-emerald-800 text-xs font-extrabold px-2.5 py-1 rounded-full">💎 Selesai!</span>`;
+                } else if (isUnlocked) {
+                    cardClasses += "bg-white border-amber-400 ring-4 ring-amber-300/60 cursor-pointer animate-bounce-slow";
+                    statusBadge = `<span class="bg-amber-400 text-amber-950 text-xs font-extrabold px-2.5 py-1 rounded-full">🚩 Misi Aktif</span>`;
+                } else {
+                    cardClasses += "locked bg-slate-200/80 border-slate-300 opacity-75 cursor-not-allowed";
+                    statusBadge = `<span class="bg-slate-300 text-slate-600 text-xs font-bold px-2.5 py-1 rounded-full">🔒 Terkunci</span>`;
+                }
+
+                card.className = cardClasses;
+                card.innerHTML = `
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${isUnlocked ? stage.color : 'from-slate-400 to-slate-500'} flex items-center justify-center text-4xl shadow-md mb-2 border-2 border-white">
+                        ${isUnlocked ? stage.icon : '🔒'}
+                    </div>
+                    <div class="font-game font-bold text-slate-800 text-sm sm:text-base leading-tight mb-1">${stage.title}</div>
+                    <div class="text-xs font-bold text-slate-500 mb-3">${stage.subtitle}</div>
+                    ${statusBadge}
+                `;
+
+                if (isUnlocked) {
+                    card.addEventListener('click', () => {
+                        playSound('click');
+                        startStage(idx);
+                    });
+                }
+
+                container.appendChild(card);
+            });
+        }
+
+        // =========================================================================
+        // 7. LOGIKA ARENA QUEST & PERTANYAAN
+        // =========================================================================
+        function startStage(stageIdx) {
+            gameState.currentStageIdx = stageIdx;
+            gameState.currentQuestionIdx = 0;
+            if (gameState.hearts <= 0) {
+                gameState.hearts = gameState.maxHearts;
+            }
+            renderQuestion();
+            showScreen('quest');
+        }
+
+        function renderQuestion() {
+            updateHUD();
+            const stage = stagesData[gameState.currentStageIdx];
+            const q = stage.questions[gameState.currentQuestionIdx];
+
+            document.getElementById('quest-stage-badge').textContent = stage.title;
+            document.getElementById('npc-avatar').textContent = stage.npcAvatar;
+            document.getElementById('npc-name').textContent = stage.npcName;
+            document.getElementById('quest-counter').textContent = `Misi ${gameState.currentQuestionIdx + 1} / ${stage.questions.length}`;
+            document.getElementById('quest-story').textContent = q.story;
+
+            // Stimulus
+            const stimBox = document.getElementById('stimulus-box');
+            if (q.stimulus) {
+                stimBox.textContent = q.stimulus;
+                stimBox.classList.remove('hidden');
+            } else {
+                stimBox.classList.add('hidden');
+            }
+
+            // Hint reset
+            const hintBox = document.getElementById('hint-box');
+            hintBox.textContent = "💡 " + q.hint;
+            hintBox.classList.add('hidden');
+
+            document.getElementById('question-type-tag').textContent = q.typeLabel;
+            document.getElementById('question-text').textContent = q.question;
+
+            const answerArea = document.getElementById('answer-area');
+            const submitArea = document.getElementById('submit-action-area');
+            answerArea.innerHTML = "";
+            gameState.selectedPGK.clear();
+
+            if (q.type === 'pg') {
+                submitArea.classList.add('hidden');
+                const grid = document.createElement('div');
+                grid.className = "grid grid-cols-1 sm:grid-cols-2 gap-3";
+                const letters = ["A", "B", "C", "D"];
+
+                q.options.forEach((optText, idx) => {
+                    const btn = document.createElement('button');
+                    btn.type = "button";
+                    btn.className = "option-card bg-white border-2 border-slate-300 rounded-2xl p-3.5 sm:p-4 text-left font-bold text-slate-800 flex items-center gap-3 text-sm sm:text-base";
+                    btn.innerHTML = `
+                        <span class="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-800 font-game font-bold flex items-center justify-center shrink-0 border border-indigo-200">
+                            ${letters[idx]}
+                        </span>
+                        <span>${optText}</span>
+                    `;
+                    btn.addEventListener('click', () => handleAnswerPG(idx));
+                    grid.appendChild(btn);
+                });
+                answerArea.appendChild(grid);
+
+            } else if (q.type === 'pgk') {
+                submitArea.classList.remove('hidden');
+                const list = document.createElement('div');
+                list.className = "flex flex-col gap-2.5";
+
+                q.options.forEach((optText, idx) => {
+                    const btn = document.createElement('button');
+                    btn.type = "button";
+                    btn.className = "option-card bg-white border-2 border-slate-300 rounded-2xl p-3.5 text-left font-bold text-slate-800 flex items-center gap-3 text-sm sm:text-base";
+                    btn.innerHTML = `
+                        <span class="chk-box w-7 h-7 rounded-lg border-2 border-slate-400 flex items-center justify-center text-white font-bold shrink-0 bg-white">
+                        </span>
+                        <span>${optText}</span>
+                    `;
+                    btn.addEventListener('click', () => {
+                        playSound('click');
+                        const chk = btn.querySelector('.chk-box');
+                        if (gameState.selectedPGK.has(idx)) {
+                            gameState.selectedPGK.delete(idx);
+                            btn.classList.remove('bg-indigo-50', 'border-indigo-500');
+                            chk.classList.remove('bg-indigo-600', 'border-indigo-600');
+                            chk.textContent = "";
+                        } else {
+                            gameState.selectedPGK.add(idx);
+                            btn.classList.add('bg-indigo-50', 'border-indigo-500');
+                            chk.classList.add('bg-indigo-600', 'border-indigo-600');
+                            chk.textContent = "✓";
+                        }
+                    });
+                    list.appendChild(btn);
+                });
+                answerArea.appendChild(list);
+
+            } else if (q.type === 'input') {
+                submitArea.classList.remove('hidden');
+                answerArea.innerHTML = `
+                    <div class="bg-slate-50 p-4 rounded-2xl border-2 border-slate-200">
+                        <label class="block text-xs font-extrabold text-slate-500 uppercase mb-2">Ketik Jawaban Angkamu:</label>
+                        <input type="text" id="quest-text-input" placeholder="${q.placeholder || 'Ketik jawaban...'}" 
+                            class="w-full px-4 py-3.5 rounded-xl border-2 border-indigo-300 focus:border-indigo-600 focus:outline-none text-xl font-extrabold text-indigo-950 bg-white">
+                    </div>
+                `;
+                setTimeout(() => {
+                    const inp = document.getElementById('quest-text-input');
+                    if (inp) {
+                        inp.focus();
+                        inp.addEventListener('keypress', (e) => {
+                            if (e.key === 'Enter') handleSubmitComplexOrInput();
+                        });
+                    }
+                }, 100);
+            }
+        }
+
+        document.getElementById('btn-hint').addEventListener('click', () => {
+            playSound('click');
+            document.getElementById('hint-box').classList.remove('hidden');
+        });
+
+        document.getElementById('btn-back-map').addEventListener('click', () => {
+            playSound('click');
+            renderMap();
+            showScreen('map');
+        });
+
+        // =========================================================================
+        // 8. EVALUASI JAWABAN & FEEDBACK MODAL
+        // =========================================================================
+        function handleAnswerPG(selectedIndex) {
+            const stage = stagesData[gameState.currentStageIdx];
+            const q = stage.questions[gameState.currentQuestionIdx];
+            const isCorrect = selectedIndex === q.correctIndex;
+            processResult(isCorrect, q.explanation);
+        }
+
+        function handleSubmitComplexOrInput() {
+            const stage = stagesData[gameState.currentStageIdx];
+            const q = stage.questions[gameState.currentQuestionIdx];
+
+            if (q.type === 'pgk') {
+                if (gameState.selectedPGK.size === 0) {
+                    showToast("Pilih minimal satu pernyataan terlebih dahulu!");
+                    return;
+                }
+                const selectedArr = Array.from(gameState.selectedPGK).sort();
+                const correctArr = [...q.correctIndices].sort();
+                const isCorrect = selectedArr.length === correctArr.length &&
+                    selectedArr.every((val, index) => val === correctArr[index]);
+                processResult(isCorrect, q.explanation);
+
+            } else if (q.type === 'input') {
+                const inp = document.getElementById('quest-text-input');
+                const val = inp ? inp.value.trim().toLowerCase() : "";
+                if (!val) {
+                    showToast("Isi jawabanmu terlebih dahulu ya!");
+                    return;
+                }
+                const isCorrect = q.correctAnswers.map(a => a.toLowerCase()).includes(val);
+                processResult(isCorrect, q.explanation);
+            }
+        }
+
+        document.getElementById('btn-submit-answer').addEventListener('click', handleSubmitComplexOrInput);
+
+        function processResult(isCorrect, explanation) {
+            const modal = document.getElementById('feedback-modal');
+            const card = document.getElementById('feedback-card');
+            const icon = document.getElementById('fb-icon');
+            const title = document.getElementById('fb-title');
+            const msg = document.getElementById('fb-message');
+            const exp = document.getElementById('fb-explanation');
+            const nextBtn = document.getElementById('btn-next-quest');
+
+            exp.textContent = explanation;
+
+            if (isCorrect) {
+                playSound('correct');
+                gameState.score += 100;
+                updateHUD();
+
+                card.className = "bg-white rounded-3xl max-w-md w-full p-6 text-center shadow-2xl border-4 border-emerald-400 animate-pop";
+                icon.textContent = "🎉";
+                title.textContent = "Luar Biasa, Tepat!";
+                title.className = "font-game text-2xl sm:text-3xl font-bold text-emerald-600 mb-2";
+                msg.textContent = "+100 Bintang! Kamu berhasil memecahkan tantangan ini.";
+                nextBtn.className = "btn-3d btn-emerald text-white font-game font-bold text-lg w-full py-3.5 rounded-2xl";
+                nextBtn.textContent = "Lanjutkan Petualangan ➡️";
+            } else {
+                playSound('wrong');
+                gameState.hearts = Math.max(0, gameState.hearts - 1);
+                updateHUD();
+
+                card.className = "bg-white rounded-3xl max-w-md w-full p-6 text-center shadow-2xl border-4 border-rose-400 animate-shake";
+                icon.textContent = "💫";
+                title.textContent = "Ups, Kurang Tepat!";
+                title.className = "font-game text-2xl sm:text-3xl font-bold text-rose-600 mb-2";
+
+                if (gameState.hearts === 0) {
+                    msg.textContent = "Energi habis! Ayo pelajari pembahasannya lalu isi ulang energi di Peta.";
+                    nextBtn.className = "btn-3d btn-amber text-white font-game font-bold text-lg w-full py-3.5 rounded-2xl";
+                    nextBtn.textContent = "🔄 Kembali ke Peta";
+                } else {
+                    msg.textContent = "Jangan menyerah! Perhatikan pembahasan di bawah ini ya.";
+                    nextBtn.className = "btn-3d btn-blue text-white font-game font-bold text-lg w-full py-3.5 rounded-2xl";
+                    nextBtn.textContent = "Lanjutkan ➡️";
+                }
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        document.getElementById('btn-next-quest').addEventListener('click', () => {
+            document.getElementById('feedback-modal').classList.add('hidden');
+
+            // Jika nyawa habis, kembali ke peta dan pulihkan energi
+            if (gameState.hearts === 0) {
+                gameState.hearts = gameState.maxHearts;
+                renderMap();
+                showScreen('map');
+                return;
+            }
+
+            const stage = stagesData[gameState.currentStageIdx];
+            if (gameState.currentQuestionIdx + 1 < stage.questions.length) {
+                gameState.currentQuestionIdx++;
+                renderQuestion();
+            } else {
+                // Pos selesai!
+                playSound('stageClear');
+                gameState.completedStages[gameState.currentStageIdx] = true;
+                if (gameState.currentStageIdx + 1 > gameState.unlockedStage && gameState.currentStageIdx + 1 < stagesData.length) {
+                    gameState.unlockedStage = gameState.currentStageIdx + 1;
+                }
+
+                // Cek apakah semua 5 pos sudah selesai
+                const allDone = gameState.completedStages.every(Boolean);
+                if (allDone) {
+                    showVictoryScreen();
+                } else {
+                    showToast(`Selamat! Kristal dari ${stage.title} berhasil didapatkan!`, "💎");
+                    renderMap();
+                    showScreen('map');
+                }
+            }
+        });
+
+        // =========================================================================
+        // 9. LAYAR KEMENANGAN (VICTORY SCREEN)
+        // =========================================================================
+        function showVictoryScreen() {
+            document.getElementById('victory-title').textContent = `Selamat, ${gameState.playerName}!`;
+            document.getElementById('final-score').textContent = gameState.score;
+            document.getElementById('final-crystals').textContent = "5 / 5";
+
+            let rank = "Penjelajah Hebat";
+            if (gameState.score >= 1400) rank = "Grandmaster!";
+            else if (gameState.score >= 1100) rank = "Ahli Matematika";
+            document.getElementById('final-rank').textContent = rank;
+
+            showScreen('victory');
+        }
+
+        document.getElementById('btn-back-to-map-end').addEventListener('click', () => {
+            playSound('click');
+            renderMap();
+            showScreen('map');
+        });
+
+        document.getElementById('btn-play-again').addEventListener('click', () => {
+            playSound('click');
+            gameState.hearts = 5;
+            gameState.score = 0;
+            gameState.unlockedStage = 0;
+            gameState.completedStages = [false, false, false, false, false];
+            renderMap();
+            showScreen('map');
+        });
+    </script>
+</body>
+</html>
